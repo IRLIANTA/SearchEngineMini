@@ -17,7 +17,7 @@ nltk.download('stopwords')
 # Load dataset
 df = pd.read_csv("beritaOlahraga.csv")
 
-# Build inverted index
+# Preprocessing Kata (Tanpa Stemming)
 inverted_index = defaultdict(set)
 for idx, row in df.iterrows():
     words = re.findall(r"\w+", str(row['Text']).lower())
@@ -145,7 +145,11 @@ elif selected == "Inverted Index":
                 row = df.iloc[idx]
                 highlighted_title = highlight(row['Judul'], query)
                 highlighted_text = highlight(row['Text'], query)
-                st.markdown(f"**{row['No']} - {highlighted_title}**", unsafe_allow_html=True)
+                st.markdown(
+                    f"<div><strong>{row['No']} - {highlighted_title}</strong><br>"
+                    f"<span style='color:white; background-color:#0E8388; padding:3px; border-radius:4px;'>Kategori: {row['Kategori']}</span></div>",
+                    unsafe_allow_html=True
+                )
                 st.markdown(f"<div style='text-align: justify;'>{highlighted_text}</div>", unsafe_allow_html=True)
                 st.markdown(f"[Baca Selengkapnya]({row['Url']})", unsafe_allow_html=True)
                 st.markdown("---")
@@ -226,7 +230,11 @@ elif selected == "Boolean Retrieval":
                     highlighted_judul = highlight(highlighted_judul, term2)
                     highlighted_text = highlight(highlighted_text, term2)
 
-                st.markdown(f"**{artikel['no']}. {highlighted_judul}**", unsafe_allow_html=True)
+                st.markdown(
+                    f"<div><strong>{artikel['no']}. {highlighted_judul}</strong><br>"
+                    f"<span style='color:white; background-color:#0E8388; padding:3px; border-radius:4px;'>Kategori: {df.iloc[artikel['no'] - 1]['Kategori']}</span></div>",
+                    unsafe_allow_html=True
+                )
                 st.markdown(f"<div style='text-align: justify;'>{highlighted_text}</div>", unsafe_allow_html=True)
                 st.markdown(f"[Baca Selengkapnya]({artikel['url']})", unsafe_allow_html=True)
                 st.markdown("---")
@@ -312,9 +320,9 @@ elif selected == "Tentang Dataset":
 
     # WordCloud
     st.subheader("Word Cloud 10 Kata Paling Sering Muncul (tanpa stopwords)")
-    all_text = ' '.join(df['Text'].dropna().tolist()).lower()
-    words = [word.strip(string.punctuation) for word in all_text.split()]
-    stop_words = set(stopwords.words('indonesian'))
+    all_text = ' '.join(df['Text'].dropna().tolist()).lower() # Gabungkan semua teks menjadi satu dan ubah menjadi huruf kecil
+    words = [word.strip(string.punctuation) for word in all_text.split()] # Hapus tanda baca dan pisahkan kata
+    stop_words = set(stopwords.words('indonesian')) # Hapus stopwords dan kata kosong
     filtered_words = [w for w in words if w not in stop_words and w != '']
     common_words = Counter(filtered_words).most_common(10)
     top_words_dict = {word.upper(): count for word, count in common_words}
@@ -341,7 +349,7 @@ elif selected == "Tentang Dataset":
     if 'Kategori' not in df.columns:
         df['Kategori'] = df['Judul'].apply(lambda x: 'Liga' if 'liga' in str(x).lower() else 'Lainnya')
 
-    top_10_berita = df.sort_values(by='Jumlah_Kata', ascending=False).head(10)
+    top_10_berita = df.sort_values(by='Jumlah_Kata', ascending=False).head(10) # Urutkan DataFrame berdasarkan kolom Jumlah_Kata secara menurun
 
     fig4, ax4 = plt.subplots(figsize=(12, 8))
     sns.barplot(
